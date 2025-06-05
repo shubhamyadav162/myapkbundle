@@ -51,9 +51,30 @@ jobs:
           if [ -f "$PLUGIN_FILE" ]; then
             # Create backup
             cp "$PLUGIN_FILE" "${PLUGIN_FILE}.bak"
-            # Copy our fixed file
-            cp fixed-plugin.gradle.kts "$PLUGIN_FILE"
-            echo "Successfully replaced plugin file"
+            
+            # Show the problematic lines
+            echo "Original content:"
+            grep -A 5 "allWarningsAsErrors" "$PLUGIN_FILE" || echo "Pattern not found"
+            
+            # Direct file edit with sed - replacing the problematic lines
+            sed -i -e '/allWarningsAsErrors =/,+1d' "$PLUGIN_FILE"
+            
+            # Add the corrected lines - inserting at the kotlinOptions block
+            sed -i '/kotlinOptions {/a \
+                jvmTarget = JavaVersion.VERSION_11.toString()\
+                \
+                // Fix for Gradle 8+ Kotlin DSL\
+                val enableWarnings = project.providers\
+                    .gradleProperty("enableWarningsAsErrors")\
+                    .forUseAtConfigurationTime()\
+                    .map { it.toBoolean() }\
+                    .orElse(false)\
+                \
+                allWarningsAsErrors.set(enableWarnings)' "$PLUGIN_FILE"
+                
+            # Verify the changes
+            echo "Modified content:"
+            grep -A 10 "kotlinOptions" "$PLUGIN_FILE" || echo "Pattern not found"
           else
             echo "Plugin file not found at $PLUGIN_FILE"
           fi
@@ -77,14 +98,14 @@ jobs:
           echo "kotlin.incremental=false" >> android/gradle.properties
           echo "reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64" >> android/gradle.properties
 
-      - name: Build release APK
+      - name: Build with Downgraded Gradle
         working-directory: android
         run: |
-          # Debug info
-          ./gradlew --version
+          # Temporarily downgrade Gradle if needed
+          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.6.2-all.zip" > gradle/wrapper/gradle-wrapper.properties
           
           # Build with detailed error reporting
-          ./gradlew assembleRelease --no-daemon --stacktrace -Dorg.gradle.logging.level=debug
+          ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Find and upload APK
         uses: actions/upload-artifact@v3

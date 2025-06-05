@@ -1,41 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-  // Add before react native loads
-  ext {
-    // Fix for Kotlin DSL errors in React Native Gradle Plugin
-    reactNativePluginPatch = { project ->
-      def pluginDir = new File(rootProject.projectDir, "../node_modules/@react-native/gradle-plugin/react-native-gradle-plugin")
-      def buildFile = new File(pluginDir, "build.gradle.kts")
-      
-      if (buildFile.exists()) {
-        def content = buildFile.text
-        
-        // Fix for "Val cannot be reassigned" and "Type mismatch" errors
-        def fixedContent = content.replace(
-          "allWarningsAsErrors =\n        project.properties[\"enableWarningsAsErrors\"]?.toString()?.toBoolean() ?: false",
-          """
-          val enableWarnings: Provider<Boolean> = project.providers
-            .gradleProperty("enableWarningsAsErrors")
-            .forUseAtConfigurationTime()
-            .map { it.toBoolean() }
-            .orElse(false)
-          
-          allWarningsAsErrors.set(enableWarnings)
-          """.trim()
-        )
-        
-        if (content != fixedContent) {
-          buildFile.text = fixedContent
-          println("✅ Fixed React Native Gradle Plugin build file")
-        }
-      }
-    }
-  }
-  
-  // Execute patch before applying plugins
-  reactNativePluginPatch(project)
-  
   ext {
     buildToolsVersion = findProperty('android.buildToolsVersion') ?: '33.0.0'
     minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '21')
@@ -56,6 +21,18 @@ buildscript {
     classpath('com.facebook.react:react-native-gradle-plugin')
     classpath('de.undercouch:gradle-download-task:5.0.1')
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+  }
+}
+
+// Patch needed for Expo in React Native
+project.ext.vectoricons = [
+  iconFontNames: [ 'MaterialIcons.ttf', 'EvilIcons.ttf' ]
+]
+
+allprojects {
+  repositories {
+    google()
+    mavenCentral()
   }
 }
 
