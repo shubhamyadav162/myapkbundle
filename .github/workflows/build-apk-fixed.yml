@@ -198,8 +198,13 @@ jobs:
         working-directory: android
         run: ./gradlew assembleRelease --info --no-daemon
 
+      - name: Check APK/AAB existence
+        run: |
+          ls -l android/app/build/outputs/apk/release/ || echo "No APKs found"
+          ls -l android/app/build/outputs/bundle/release/ || echo "No AABs found"
+
       - name: Find and upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: |
