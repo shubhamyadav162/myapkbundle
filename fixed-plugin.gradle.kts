@@ -1,6 +1,7 @@
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.provider.Provider
 
 plugins {
     kotlin("jvm")
@@ -44,10 +45,13 @@ kotlin {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_11.toString()
-            // Fetch the property safely as a String?
-            val enableWarnings = project.findProperty("enableWarningsAsErrors") as String?
-            // Set allWarningsAsErrors as Boolean
-            allWarningsAsErrors = enableWarnings?.toBoolean() ?: false
+            // प्रॉपर्टी से Boolean बनाकर Provider<Boolean> तैयार करें
+            val enableWarnings: Provider<Boolean> = project.providers
+                .gradleProperty("enableWarningsAsErrors")
+                .forUseAtConfigurationTime()
+                .map { it.toBoolean() }
+            // नए DSL के मुताबिक वैल्यू सेट करें
+            compilerOptions.allWarningsAsErrors.set(enableWarnings)
         }
     }
 }
