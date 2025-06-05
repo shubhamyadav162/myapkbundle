@@ -20,14 +20,14 @@ jobs:
           java-version: 17
 
       - name: Grant execution permission for Gradle wrapper
-        run: chmod +x ./android/gradlew
+        run: chmod +x android/gradlew
 
       - name: Build release APK
-        working-directory: ./android
+        working-directory: android
         run: ./gradlew assembleRelease
 
       - name: Upload release APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: release-apk
-          path: ./android/app/build/outputs/apk/release/app-release.apk 
+          path: android/app/build/outputs/apk/release/app-release.apk 
