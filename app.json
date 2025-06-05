@@ -2,19 +2,19 @@
   "expo": {
     "name": "Big Show",
     "slug": "big-show-pmp16",
-    "icon": "./assets/photo_2025_05_30_16_14_57.png",
+    "icon": "./assets/photo_2025_05_30_16_14_57.jpg",
     "scheme": "com.bigshow.app",
     "version": "1.0.0",
     "assetBundlePatterns": [
       "**/*"
     ],
     "web": {
-      "favicon": "./assets/photo_2025_05_30_16_14_57.png"
+      "favicon": "./assets/photo_2025_05_30_16_14_57.jpg"
     },
     "android": {
       "package": "com.bigshow",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/photo_2025_05_30_16_14_57.png",
+        "foregroundImage": "./assets/photo_2025_05_30_16_14_57.jpg",
         "backgroundColor": "#000000"
       },
       "permissions": [
@@ -115,7 +115,7 @@
     },
     "owner": "pmp16",
     "splash": {
-      "image": "./assets/photo_2025_05_30_16_14_57.png",
+      "image": "./assets/photo_2025_05_30_16_14_57.jpg",
       "resizeMode": "cover",
       "backgroundColor": "#000000"
     }
