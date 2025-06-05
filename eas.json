@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 2.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "apk",
+        "credentialsSource": "remote",
+        "gradleCommand": ":app:assembleRelease",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25c"
+      },
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+} 
