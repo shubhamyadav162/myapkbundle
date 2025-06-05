@@ -29,3 +29,4 @@ token.txt
 firebaseintegration.md
 .vscode/
 .vscode/
+# Ignoring top-level android and ios folders
