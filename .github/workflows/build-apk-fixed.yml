@@ -130,14 +130,20 @@ jobs:
       - name: Set execute permissions on gradlew
         run: chmod +x android/gradlew
 
-      - name: Update Gradle wrapper to 7.5.1
+      - name: Update Gradle wrapper to 8.1.1
         run: |
           mkdir -p android/gradle/wrapper
           echo "distributionBase=GRADLE_USER_HOME" > android/gradle/wrapper/gradle-wrapper.properties
           echo "distributionPath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
-          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-7.5.1-all.zip" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.1.1-all.zip" >> android/gradle/wrapper/gradle-wrapper.properties
           echo "zipStoreBase=GRADLE_USER_HOME" >> android/gradle/wrapper/gradle-wrapper.properties
           echo "zipStorePath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Check Gradle version
+        run: |
+          cd android
+          ./gradlew --version
+          cd ..
 
       - name: Set up signing configs
         run: |
