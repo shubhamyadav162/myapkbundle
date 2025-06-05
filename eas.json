@@ -25,7 +25,10 @@
     "production": {
       "distribution": "store",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "credentialsSource": "remote",
+        "gradleCommand": ":app:assembleRelease",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25c"
       },
       "env": {
         "NODE_ENV": "production"
