@@ -38,6 +38,21 @@ module.exports = ({ config }) => {
   
   return {
     ...config,
+    // Add expo-video plugin for bundling
+    plugins: [
+      ...(config.plugins || []),
+      "expo-video",
+      [
+        "expo-build-properties",
+        {
+          android: {
+            compileSdkVersion: 35,
+            targetSdkVersion: 35,
+            buildToolsVersion: "35.0.0"
+          }
+        }
+      ]
+    ],
     extra: {
       ...config.extra,
       // Supabase configuration
