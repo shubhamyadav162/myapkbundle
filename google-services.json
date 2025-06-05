@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "629266811201",
+    "project_id": "bigshow-ott",
+    "storage_bucket": "bigshow-ott.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629266811201:android:c8624d932eda19029a39c0",
+        "android_client_info": {
+          "package_name": "com.bigshow"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629266811201-i0bufsvuoutj4c56r5rt3u4oat8j6sjc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAA_XTRI1oT_M2GWKSqEkCAgOQQ4pcArXU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629266811201-i0bufsvuoutj4c56r5rt3u4oat8j6sjc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

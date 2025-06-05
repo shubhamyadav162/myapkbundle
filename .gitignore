@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+# React Native build artifacts
+android/app/build/
+ios/build/
+ios/Pods/
+# Expo
+.expo
+.expo-shared
+web-build/
+# Distribution
+dist/
+build/
+# Logs
+*.log
+# Environment
+.env
+.env.*
+# System files
+.DS_Store
+Thumbs.db
+# IDE
+.idea/
+.vscode/ token.txt
+.vercel/
+firebaseintegration.md
+token.txt
+.vercel/
+firebaseintegration.md
+.vscode/
+.vscode/
