@@ -5,6 +5,7 @@ on:
     branches:
       - master
   pull_request: {}
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,9 +21,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          npm install
-          cd android && ./gradlew clean || true
+        run: npm install
 
       - name: Create google-services.json
         run: |
@@ -44,41 +43,6 @@ jobs:
             ]
           }' > android/app/google-services.json
 
-      - name: Fix React Native Gradle Plugin
-        run: |
-          echo "Fixing React Native Gradle Plugin..."
-          PLUGIN_FILE="node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts"
-          if [ -f "$PLUGIN_FILE" ]; then
-            # Create backup
-            cp "$PLUGIN_FILE" "${PLUGIN_FILE}.bak"
-            
-            # Show the problematic lines
-            echo "Original content:"
-            grep -A 5 "allWarningsAsErrors" "$PLUGIN_FILE" || echo "Pattern not found"
-            
-            # Direct file edit with sed - replacing the problematic lines
-            sed -i -e '/allWarningsAsErrors =/,+1d' "$PLUGIN_FILE"
-            
-            # Add the corrected lines - inserting at the kotlinOptions block
-            sed -i '/kotlinOptions {/a \
-                jvmTarget = JavaVersion.VERSION_11.toString()\
-                \
-                // Fix for Gradle 8+ Kotlin DSL\
-                val enableWarnings = project.providers\
-                    .gradleProperty("enableWarningsAsErrors")\
-                    .forUseAtConfigurationTime()\
-                    .map { it.toBoolean() }\
-                    .orElse(false)\
-                \
-                allWarningsAsErrors.set(enableWarnings)' "$PLUGIN_FILE"
-                
-            # Verify the changes
-            echo "Modified content:"
-            grep -A 10 "kotlinOptions" "$PLUGIN_FILE" || echo "Pattern not found"
-          else
-            echo "Plugin file not found at $PLUGIN_FILE"
-          fi
-
       - name: Set up Java 17
         uses: actions/setup-java@v3
         with:
@@ -86,26 +50,175 @@ jobs:
           java-version: 17
           cache: 'gradle'
 
-      - name: Grant execution permission for Gradle wrapper
-        run: chmod +x android/gradlew || echo "Could not set permissions on gradlew"
-
-      - name: Update Gradle Properties
+      - name: Create replacement React Native Gradle plugin
         run: |
-          echo "org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> android/gradle.properties
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
-          echo "org.gradle.daemon=false" >> android/gradle.properties
-          echo "kotlin.incremental=false" >> android/gradle.properties
-          echo "reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64" >> android/gradle.properties
+          # Replace the problematic kotlin file completely
+          PLUGIN_FILE="node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts"
+          if [ -f "$PLUGIN_FILE" ]; then
+            echo "Replacing React Native Gradle Plugin build file"
+            cat > "$PLUGIN_FILE" << 'EOL'
+          import org.gradle.api.tasks.bundling.Jar
+          import org.gradle.api.tasks.testing.Test
+          import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-      - name: Build with Downgraded Gradle
+          plugins {
+              kotlin("jvm")
+              `java-gradle-plugin`
+              `maven-publish`
+          }
+
+          group = "com.facebook.react"
+
+          repositories {
+              mavenCentral()
+              google()
+          }
+
+          dependencies {
+              implementation(gradleApi())
+              implementation("com.android.tools.build:gradle:7.4.2")
+              implementation("com.google.code.gson:gson:2.8.9")
+              testImplementation(gradleTestKit())
+              testImplementation("junit:junit:4.13.2")
+              testImplementation("org.assertj:assertj-core:3.21.0")
+          }
+
+          gradlePlugin {
+              plugins {
+                  create("react") {
+                      id = "com.facebook.react"
+                      implementationClass = "com.facebook.react.ReactPlugin"
+                  }
+              }
+          }
+
+          java {
+              sourceCompatibility = JavaVersion.VERSION_11
+              targetCompatibility = JavaVersion.VERSION_11
+          }
+
+          kotlin {
+              tasks.withType<KotlinCompile>().configureEach {
+                  kotlinOptions {
+                      jvmTarget = JavaVersion.VERSION_11.toString()
+                      // Fix for Kotlin DSL errors
+                      val enableWarningsAsErrors = project.providers
+                          .gradleProperty("enableWarningsAsErrors")
+                          .forUseAtConfigurationTime()
+                          .map { it.toBoolean() }
+                          .orElse(false)
+                      
+                      allWarningsAsErrors.set(enableWarningsAsErrors)
+                  }
+              }
+          }
+
+          tasks.withType<Test>().configureEach {
+              testLogging {
+                  exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                  showStandardStreams = true
+                  showStackTraces = true
+                  showCauses = true
+              }
+          }
+
+          val jar by tasks.getting(Jar::class) {
+              archiveBaseName.set("react-native-gradle-plugin")
+              from(sourceSets.main.get().output)
+          }
+
+          publishing {
+              publications {
+                  create<MavenPublication>("reactPlugin") {
+                      artifactId = "react-native-gradle-plugin"
+                      from(components["java"])
+                  }
+              }
+              repositories {
+                  maven {
+                      url = uri("${layout.buildDirectory.get()}/repo")
+                  }
+              }
+          }
+          EOL
+            echo "Successfully replaced plugin file"
+          else
+            echo "Plugin file not found at $PLUGIN_FILE"
+          fi
+
+      - name: Update Gradle wrapper
+        run: |
+          # Use Gradle 7.5.1 which is more compatible with React Native
+          mkdir -p android/gradle/wrapper
+          echo "distributionBase=GRADLE_USER_HOME" > android/gradle/wrapper/gradle-wrapper.properties
+          echo "distributionPath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.5.1-all.zip" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "zipStoreBase=GRADLE_USER_HOME" >> android/gradle/wrapper/gradle-wrapper.properties
+          echo "zipStorePath=wrapper/dists" >> android/gradle/wrapper/gradle-wrapper.properties
+          
+          # Ensure gradlew is executable
+          chmod +x android/gradlew
+
+      - name: Configure Gradle properties
+        run: |
+          cat > android/gradle.properties << 'EOL'
+          # Project-wide Gradle settings.
+
+          # IDE (e.g. Android Studio) users:
+          # Gradle settings configured through the IDE *will override*
+          # any settings specified in this file.
+
+          # For more details on how to configure your build environment visit
+          # http://www.gradle.org/docs/current/userguide/build_environment.html
+
+          # Specifies the JVM arguments used for the daemon process.
+          # The setting is particularly useful for tweaking memory settings.
+          # Default value: -Xmx512m -XX:MaxMetaspaceSize=256m
+          org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
+
+          # When configured, Gradle will run in incubating parallel mode.
+          # This option should only be used with decoupled projects. More details, visit
+          # http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects
+          # org.gradle.parallel=true
+
+          # AndroidX package structure to make it clearer which packages are bundled with the
+          # Android operating system, and which are packaged with your app's APK
+          # https://developer.android.com/topic/libraries/support-library/androidx-rn
+          android.useAndroidX=true
+          # Automatically convert third-party libraries to use AndroidX
+          android.enableJetifier=true
+
+          # Use this property to specify which architecture you want to build.
+          # You can also override it from the CLI using
+          # ./gradlew <task> -PreactNativeArchitectures=x86_64
+          reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+
+          # Use this property to enable support to the new architecture.
+          # This will allow you to use TurboModules and the Fabric render in
+          # your application. You should enable this flag either if you want
+          # to write custom TurboModules/Fabric components OR use libraries that
+          # are providing them.
+          newArchEnabled=false
+
+          # Use this property to enable or disable the Hermes JS engine.
+          # If set to false, you will be using JSC instead.
+          hermesEnabled=true
+
+          # Disable daemon mode
+          org.gradle.daemon=false
+
+          # Disable Kotlin incremental compilation to avoid issues
+          kotlin.incremental=false
+
+          # Android SDK directory
+          android.dir=/opt/android
+          EOL
+
+      - name: Build Release APK
         working-directory: android
         run: |
-          # Temporarily downgrade Gradle if needed
-          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.6.2-all.zip" > gradle/wrapper/gradle-wrapper.properties
-          
-          # Build with detailed error reporting
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          # Build with gradle info for better debugging
+          ./gradlew assembleRelease --info --no-daemon --stacktrace
 
       - name: Find and upload APK
         uses: actions/upload-artifact@v3
