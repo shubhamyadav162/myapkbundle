@@ -44,15 +44,10 @@ kotlin {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_11.toString()
-            
-            // Fix for Kotlin DSL error in Gradle 8+
-            val enableWarnings: Provider<Boolean> = project.providers
-                .gradleProperty("enableWarningsAsErrors")
-                .forUseAtConfigurationTime()
-                .map { it.toBoolean() }
-                .orElse(false)
-            
-            allWarningsAsErrors.set(enableWarnings)
+            // Fetch the property safely as a String?
+            val enableWarnings = project.findProperty("enableWarningsAsErrors") as String?
+            // Set allWarningsAsErrors as Boolean
+            allWarningsAsErrors = enableWarnings?.toBoolean() ?: false
         }
     }
 }

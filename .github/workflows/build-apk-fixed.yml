@@ -216,4 +216,8 @@ jobs:
           name: app-release
           path: |
             android/app/build/outputs/apk/release/*.apk
-            android/app/build/outputs/bundle/release/*.aab 
+            android/app/build/outputs/bundle/release/*.aab
+
+      - name: Patch React Native Gradle Plugin for allWarningsAsErrors
+        run: |
+          cp fixed-plugin.gradle.kts node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts 
