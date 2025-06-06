@@ -1,6 +1,9 @@
 workflows:
   build-android:
     name: Build Android APK
+    triggers:
+      - push
+      - pull_request
     max_build_duration: 60
     scripts:
       - name: Install dependencies
