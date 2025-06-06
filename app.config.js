@@ -38,8 +38,10 @@ module.exports = ({ config }) => {
   
   return {
     ...config,
-    // Add expo-video plugin for bundling
-    plugins: [...(config.plugins || []), "expo-video"],
+    plugins: [
+      ...(config.plugins || []),
+      'expo-font',
+    ],
     extra: {
       ...config.extra,
       // Supabase configuration

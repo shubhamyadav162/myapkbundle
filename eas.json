@@ -1,13 +1,16 @@
 {
   "cli": {
-    "version": ">= 2.0.0"
+    "version": ">= 2.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug",
+        "withoutCredentials": true
       },
       "env": {
         "NODE_ENV": "development"
@@ -16,7 +19,9 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "withoutCredentials": false
       },
       "env": {
         "NODE_ENV": "development"
@@ -27,8 +32,8 @@
       "android": {
         "buildType": "apk",
         "credentialsSource": "remote",
-        "gradleCommand": ":app:assembleRelease",
-        "image": "ubuntu-22.04-jdk-17-ndk-r25c"
+        "gradleCommand": ":app:assembleRelease -PenableWarningsAsErrors=false",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
       },
       "env": {
         "NODE_ENV": "production"
