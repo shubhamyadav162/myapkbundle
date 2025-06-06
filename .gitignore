@@ -30,5 +30,5 @@ firebaseintegration.md
 .vscode/
 .vscode/
 # Ignoring top-level android and ios folders
-/android/
-/ios/
+# /android/
+# /ios/
