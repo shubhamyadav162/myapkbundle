@@ -20,7 +20,6 @@
     "@expo/vector-icons": "^14.0.0",
     "@react-native-async-storage/async-storage": "1.21.0",
     "@react-native-community/slider": "4.4.2",
-    "@react-native/gradle-plugin": "^0.0.10",
     "@react-navigation/bottom-tabs": "^6.5.8",
     "@react-navigation/devtools": "^6.0.20",
     "@react-navigation/native": "^6.1.7",
@@ -89,8 +88,5 @@
         "listUnknownPackages": false
       }
     }
-  },
-  "resolutions": {
-    "@react-native/gradle-plugin": "0.0.10"
   }
 }
