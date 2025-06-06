@@ -7,7 +7,8 @@ const path = require('path');
 // Try to load production env file if NODE_ENV is production
 if (process.env.NODE_ENV === 'production' && fs.existsSync(path.resolve('.env.production'))) {
   require('dotenv').config({ path: '.env.production' });
-  console.log('Loaded production environment variables');
+  // Use console.error for logging to avoid affecting JSON output
+  console.error('Loaded production environment variables');
 }
 
 module.exports = ({ config }) => {
@@ -33,8 +34,8 @@ module.exports = ({ config }) => {
     ? 'https://hjsdcsatfcysrwsryngu.supabase.co/functions/v1'
     : 'https://hjsdcsatfcysrwsryngu.supabase.co/functions/v1';
   
-  // Log configuration
-  console.log(`Building app config for ${isProd ? 'PRODUCTION' : 'DEVELOPMENT'}`);
+  // Log configuration to stderr instead of stdout to avoid affecting JSON output
+  console.error(`Building app config for ${isProd ? 'PRODUCTION' : 'DEVELOPMENT'}`);
   
   return {
     ...config,

@@ -1,22 +1,25 @@
 workflows:
-  build-android:
-    name: Build Android APK
-    max_build_duration: 60
+  expo-android:
+    name: Expo React Native Android Build
+    triggering:
+      events:
+        - push
+    environment:
+      node: "18.16.0"
+      expo: "latest"
+      cocoapods: default
+      android:
+        gradle: default
     scripts:
-      - name: Prepare environment
-        script: |
-          chmod +x gradlew
-          chmod +x android/gradlew
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
       - name: Install dependencies
-        script: |
-          npm install -g expo-cli eas-cli
-          npm install
+        script: yarn install
+      - name: Install expo-cli
+        script: npm install -g expo-cli
       - name: Prebuild Android
+        script: expo prebuild --platform android
+      - name: Build Android release bundle
         script: |
-          npx expo prebuild --platform android --non-interactive
-      - name: Build APK
-        script: |
-          ./gradlew assembleRelease
+          cd android
+          ./gradlew bundleRelease
     artifacts:
-      - android/app/build/outputs/apk/release/*.apk 
+      - android/app/build/outputs/bundle/release/*.aab 
