@@ -6,10 +6,6 @@ workflows:
         - push
     environment:
       node: "18.16.0"
-      expo: "latest"
-      cocoapods: default
-      android:
-        gradle: default
     scripts:
       - name: Install dependencies
         script: yarn install
